@@ -1,0 +1,23 @@
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Unit tests, including all four demo cases end to end
+        run: python3 -m unittest discover -s tests -v
+      - name: The README's known case ends on its known VERDICT line
+        run: |
+          python3 red_green_check.py demo | tee out.txt
+          grep -qx "VERDICT: PROVEN: the test fails 3 of 3 runs before the fix and passes 3 of 3 after." out.txt
+          grep -qx "VERDICT: NOT A REPRO: the test passes 3 of 3 runs before the fix, so it never showed the bug." out.txt
+          grep -qx "VERDICT: FIX INCOMPLETE: the test fails 3 of 3 runs before the fix and still fails 3 of 3 after." out.txt
+          grep -q "^VERDICT: FLAKY: " out.txt
+          tail -1 out.txt | grep -qx "demo: every case earned the verdict it was built for."

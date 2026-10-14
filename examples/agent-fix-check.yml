@@ -1,0 +1,29 @@
+# Copy to .github/workflows/ in your repo. On every pull request labelled agent-fix, it
+# runs the PR's reproduction test on the base branch and on the PR, 3 times each, and
+# fails the check on anything but PROVEN. The PR states its test in a REPRO_TEST file:
+# one line, the shell command that runs the test, e.g.
+#   python3 -m pytest -q tests/test_webhooks.py::test_duplicate_event_ships_once
+name: prove the agent's fix
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+jobs:
+  red-green:
+    if: contains(github.event.pull_request.labels.*.name, 'agent-fix')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install your project
+        run: pip install -r requirements.txt
+      - name: Fetch red_green_check.py
+        run: curl -fsSLO https://raw.githubusercontent.com/paolo-perrone/red-green-check/main/red_green_check.py
+      - name: Fail before the fix, pass after, or block the merge
+        run: |
+          python3 red_green_check.py check --repo . \
+            --base "origin/${{ github.base_ref }}" --fix HEAD \
+            --test "$(head -1 REPRO_TEST)"
