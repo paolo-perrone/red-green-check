@@ -1,5 +1,9 @@
 # red-green-check
 
+> Status: run 2026-10-14 on its four demo repos and 16 unit tests, on macOS with Python 3.14 and in CI on Ubuntu with Python 3.9, 3.12 and 3.13. Not yet run on a third-party project or on Windows.
+
+Companion to [The AI Engineer](https://theaiengineer.substack.com), the issue on how an AI bug hunter proves a bug is real.
+
 Tells a proven bug fix from a flagged one: a test that fails before the fix and
 passes after it, every run, before you merge what an AI agent wrote.
 
